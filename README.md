@@ -1,6 +1,7 @@
 # 🌱 Dashboard IoT: Monitoreo de Estrés Hídrico en Vigna unguiculata
 
-[![Streamlit App] : https://monitoreo-estres-hidrico-evc8fiwcmncam4s6scj8nb.streamlit.app
+[![Streamlit App] : https://share.streamlit.io/user/condeless
+**[🔗 Haz clic aquí para ver la aplicación en vivo] : https://monitoreo-estres-hidrico-evc8fiwcmncam4s6scj8nb.streamlit.app
 
 ## 📌 Sobre el Proyecto
 Esta aplicación web interactiva fue desarrollada para visualizar y analizar datos de humedad del suelo y temperatura ambiental capturados mediante un **microcontrolador ESP32**. El proyecto se centra en el monitoreo de ensayos agrícolas, específicamente en la evaluación del estrés hídrico en el cultivo de *Vigna unguiculata*.
