@@ -30,7 +30,7 @@ Si deseas correr este proyecto en tu propia máquina, sigue estos pasos:
   4. Ejecuta la aplicación:
      streamlit run app.py
 
-👨‍💻 Autor
+## 👨‍💻 Autor
 Carlos D’Alessandro Condemarin Muñoz
 Desarrollador IoT & Analista de Datos | Estudiante e Investigador
 
