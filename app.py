@@ -15,7 +15,7 @@ st.markdown("---")
 @st.cache_data
 def generar_datos_simulados():
     # Simulamos 48 horas de lectura de sensores
-    fechas = pd.date_range(start="2026-03-01", periods=48, freq="H")
+    fechas = pd.date_range(start="2026-03-01", periods=48, freq="h")
     # Simulamos la humedad cayendo más rápido en el tratamiento de estrés
     humedad_control = np.linspace(60, 50, 48) + np.random.normal(0, 1, 48)
     humedad_estres = np.linspace(60, 25, 48) + np.random.normal(0, 1.5, 48)
@@ -47,7 +47,7 @@ st.sidebar.caption("La columna de temperatura es opcional.")
 # --- Logo al final del panel lateral ---
 st.sidebar.markdown("---") 
 if os.path.exists("logo.png"):
-    st.sidebar.image("logo.png", use_container_width=True)
+    st.sidebar.image("logo.png", width="stretch")
     st.sidebar.caption("Desarrollado para CIATEC") 
 
 # 4. Lógica para leer el archivo o usar los datos simulados
@@ -91,15 +91,15 @@ grafico_humedad = px.line(datos, x='Fecha_Hora', y=['Control_Humedad(%)', 'Estre
 if tiene_temp:
     col_graf1, col_graf2 = st.columns(2)
     with col_graf1:
-        st.plotly_chart(grafico_humedad, use_container_width=True)
+        st.plotly_chart(grafico_humedad, width="stretch")
     with col_graf2:
         grafico_temp = px.line(datos, x='Fecha_Hora', y='Temperatura(°C)', 
                                title='Variación de la Temperatura Ambiental',
                                color_discrete_sequence=['red'])
-        st.plotly_chart(grafico_temp, use_container_width=True)
+        st.plotly_chart(grafico_temp, width="stretch")
 else:
     # Si no hay temperatura, el gráfico de humedad se expande a lo ancho
-    st.plotly_chart(grafico_humedad, use_container_width=True)
+    st.plotly_chart(grafico_humedad, width="stretch")
 
 # 6. Mostrar tabla de datos en bruto
 with st.expander("Ver base de datos cruda (Exportable)"):
