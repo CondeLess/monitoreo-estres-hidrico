@@ -113,11 +113,19 @@ st.markdown("### 📈 Dinámica Temporal.")
 if tiene_temp:
     cg1, cg2 = st.columns(2)
     with cg1:
-        st.plotly_chart(px.line(datos, x='Fecha_Hora', y=['Control_Humedad(%)', 'Estres_Humedad(%)'], 
-                                title='Dinámica de Humedad del Suelo'), use_container_width=True)
+        fig_h = px.line(datos, x='Fecha_Hora', y=['Control_Humedad(%)', 'Estres_Humedad(%)'], 
+                    title='Humedad del Suelo',
+                    color_discrete_sequence=['#00FFC8', '#FF3131'], # Turquesa y Rojo Neón
+                    template='plotly_dark')
+        fig_h.update_traces(line=dict(width=3)) # Líneas más gruesas
+        st.plotly_chart(fig_h, use_container_width=True)
     with cg2:
-        st.plotly_chart(px.line(datos, x='Fecha_Hora', y='Temperatura(°C)', 
-                                title='Dinámica de Temperatura', color_discrete_sequence=['orange']), use_container_width=True)
+        fig_t = px.line(datos, x='Fecha_Hora', y='Temperatura(°C)', 
+                    title='Temperatura Ambiental',
+                    color_discrete_sequence=['#FFFB00'], # Amarillo Neón
+                    template='plotly_dark')
+        fig_t.update_traces(line=dict(width=3))
+        st.plotly_chart(fig_t, use_container_width=True)
 else:
     st.plotly_chart(px.line(datos, x='Fecha_Hora', y=['Control_Humedad(%)', 'Estres_Humedad(%)'], 
                             title='Dinámica de Humedad del Suelo'), use_container_width=True)
