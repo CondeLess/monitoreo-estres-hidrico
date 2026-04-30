@@ -25,7 +25,7 @@ def generar_datos_simulados():
         'Temperatura(°C)': temperatura
     })
 
-# 3. Panel lateral: LÓGICA DE CONFIGURACIÓN (Corregido)
+# 3. PANEL LATERAL: CONFIGURACIÓN CIENTÍFICA
 st.sidebar.header("⚙️ Gestión de Datos")
 archivo_subido = st.sidebar.file_uploader("Selecciona un archivo .csv", type=["csv"])
 
@@ -46,21 +46,21 @@ textura = st.sidebar.selectbox(
     help="Define el punto de partida del umbral crítico basado en la capacidad de retención del suelo."
 )
 
-# --- INICIALIZACIÓN CRÍTICA (Debe ir antes de los sliders) ---
+# Inicialización segura del estado
 if 'umbral_dinamico' not in st.session_state:
     st.session_state.umbral_dinamico = pmp_teoricos[textura]
 
-# Si el usuario cambia la textura en el selectbox, actualizamos el umbral
+# Botón para resetear al valor teórico de la textura
 if st.sidebar.button("Aplicar valor de textura"):
     st.session_state.umbral_dinamico = pmp_teoricos[textura]
 
-# Un solo slider consolidado para el umbral crítico
+# Slider único para el Umbral Crítico (PMP)
 umbral_final = st.sidebar.slider(
     "Ajuste de Umbral Crítico (%)", 
     5.0, 40.0, 
     value=float(st.session_state.umbral_dinamico),
     key="slider_umbral",
-    help="Este valor define el Punto de Marchitez Permanente (PMP) para los cálculos."
+    help="Define el Punto de Marchitez Permanente (PMP) para los cálculos predictivos."
 )
 st.session_state.umbral_dinamico = umbral_final
 
@@ -83,36 +83,55 @@ else:
 
 tiene_temp = 'Temperatura(°C)' in datos.columns
 
-# 5. Métricas (KPIs)
+# 5. MÉTRICAS ACTUALES (KPIs)
 st.subheader("Métricas Actuales (Última Lectura)")
-col1, col2, col3 = st.columns(3)
+col_kpi1, col_kpi2, col_kpi3 = st.columns(3)
+
 if tiene_temp:
-    col1.metric("Temperatura Actual", f"{datos['Temperatura(°C)'].iloc[-1]:.1f} °C")
-col2.metric("Humedad - Control", f"{datos['Control_Humedad(%)'].iloc[-1]:.1f} %")
-col3.metric("Humedad - Estrés", f"{datos['Estres_Humedad(%)'].iloc[-1]:.1f} %", delta="- Crítico", delta_color="inverse")
+    col_kpi1.metric("Temperatura Actual", f"{datos['Temperatura(°C)'].iloc[-1]:.1f} °C")
+col_kpi2.metric("Humedad - Control", f"{datos['Control_Humedad(%)'].iloc[-1]:.1f} %")
+col_kpi3.metric("Humedad - Estrés", f"{datos['Estres_Humedad(%)'].iloc[-1]:.1f} %", delta="- Crítico", delta_color="inverse")
 
-# 6. Gráficos e Historial
+# 6. ANÁLISIS TEMPORAL (Gráficos restaurados)
 st.markdown("### Análisis Temporal")
-grafico_humedad = px.line(datos, x='Fecha_Hora', y=['Control_Humedad(%)', 'Estres_Humedad(%)'], title='Evolución de la Humedad del Suelo')
-st.plotly_chart(grafico_humedad, use_container_width=True)
 
-# 7. Análisis Estadístico y Predictivo
+# Lógica de dos columnas para ver Humedad y Temperatura en paralelo
+if tiene_temp:
+    col_graf1, col_graf2 = st.columns(2)
+    with col_graf1:
+        graf_hum = px.line(datos, x='Fecha_Hora', y=['Control_Humedad(%)', 'Estres_Humedad(%)'], 
+                           title='Evolución de la Humedad del Suelo')
+        st.plotly_chart(graf_hum, use_container_width=True)
+    with col_graf2:
+        graf_temp = px.line(datos, x='Fecha_Hora', y='Temperatura(°C)', 
+                            title='Variación de la Temperatura Ambiental', color_discrete_sequence=['red'])
+        st.plotly_chart(graf_temp, use_container_width=True)
+else:
+    graf_hum = px.line(datos, x='Fecha_Hora', y=['Control_Humedad(%)', 'Estres_Humedad(%)'], 
+                       title='Evolución de la Humedad del Suelo')
+    st.plotly_chart(graf_hum, use_container_width=True)
+
+# 7. INTELIGENCIA AGRONÓMICA (Estadísticas profundas restauradas)
 st.markdown("### 📊 Inteligencia Agronómica")
 col_stat1, col_stat2 = st.columns(2)
 
 with col_stat1:
-    dif_medias = datos['Control_Humedad(%)'].mean() - datos['Estres_Humedad(%)'].mean()
-    st.metric("Diferencia Media de Humedad", f"{dif_medias:.1f}%")
-    st.caption("Brecha hídrica promedio entre tratamientos.")
+    if tiene_temp:
+        corr = datos[['Control_Humedad(%)', 'Temperatura(°C)']].corr().iloc[0,1]
+        st.metric("Correlación (Humedad vs Temp)", f"{corr:.2f}")
+        st.caption("Coeficiente de Pearson. Si es negativo, el aumento de temperatura fuerza la desecación del suelo.")
+    else:
+        dif_medias = datos['Control_Humedad(%)'].mean() - datos['Estres_Humedad(%)'].mean()
+        st.metric("Diferencia Media", f"{dif_medias:.1f}%")
 
 with col_stat2:
     area_estres = np.trapezoid(datos['Control_Humedad(%)'] - datos['Estres_Humedad(%)'])
     st.metric("Integral de Estrés Acumulado", f"{area_estres:.2f} %-hora")
-    st.caption("Cuantifica la severidad acumulada del déficit hídrico.")
+    st.caption("Regla del trapecio. Cuantifica la severidad acumulada del déficit hídrico.")
 
-# Predictor con Regresión
+# 8. PRONÓSTICO DE AGOTAMIENTO
 st.markdown("---")
-st.subheader("🔮 Pronóstico de Agotamiento")
+st.subheader("🔮 Pronóstico de Agotamiento Hídrico")
 y = datos['Estres_Humedad(%)'].values
 x = np.arange(len(y))
 coef = np.polyfit(x, y, 1)
@@ -123,11 +142,11 @@ if pendiente < 0:
     if horas_restantes > 0:
         st.warning(f"⚠️ El umbral de {st.session_state.umbral_dinamico:.1f}% se alcanzará en aprox. **{horas_restantes:.1f} horas**.")
     else:
-        st.error(f"🚨 El cultivo ya superó el umbral crítico de {st.session_state.umbral_dinamico:.1f}%.")
+        st.error(f"🚨 El cultivo ya superó el umbral crítico detectado ({st.session_state.umbral_dinamico:.1f}%).")
 else:
-    st.success("✅ Tendencia estable. No se proyecta déficit inmediato.")
+    st.success("✅ Tendencia estable. No se proyecta déficit hídrico inmediato.")
 
-# 8. Validación Biológica
+# 9. VALIDACIÓN BIOLÓGICA (Ground Truth)
 st.markdown("---")
 st.markdown("### 🌿 Validación Biológica (Ground Truth)")
 col_btn, col_txt = st.columns([1, 2])
@@ -138,4 +157,7 @@ with col_btn:
         st.rerun()
 
 with col_txt:
-    st.info(f"Umbral actual: **{st.session_state.umbral_dinamico:.1f}%**. Presiona el botón si observas marchitez en campo para recalibrar.")
+    st.info(f"Umbral actual: **{st.session_state.umbral_dinamico:.1f}%**. Presiona el botón si observas marchitez foliar.")
+
+with st.expander("Ver base de datos cruda (Exportable)"):
+    st.dataframe(datos)
