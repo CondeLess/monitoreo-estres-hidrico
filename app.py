@@ -53,6 +53,15 @@ umbral_personalizado = st.sidebar.slider(
     value=20.0,
     help="Ajusta este valor según la capacidad de campo y el punto de marchitez del suelo ensayado."
 )
+st.sidebar.markdown("---")
+st.sidebar.subheader("🌱 Configuración del Suelo")
+
+textura = st.sidebar.selectbox(
+    "Textura del Suelo del Ensayo",
+    options=list(pmp_teoricos.keys()),
+    index=1,  # Por defecto inicia en Franco
+    help="Define el punto de partida del umbral crítico basado en la capacidad de retención del suelo."
+)
 
 # --- Logo al final del panel lateral ---
 st.sidebar.markdown("---") 
@@ -168,17 +177,6 @@ pmp_teoricos = {
     "Arcilloso (Clay)": 24.0,
     "Personalizado": 20.0
 }
-
-# --- 10. Configuración en el Sidebar ---
-st.sidebar.markdown("---")
-st.sidebar.subheader("🌱 Configuración del Suelo")
-
-textura = st.sidebar.selectbox(
-    "Textura del Suelo del Ensayo",
-    options=list(pmp_teoricos.keys()),
-    index=1,  # Por defecto inicia en Franco
-    help="Define el punto de partida del umbral crítico basado en la capacidad de retención del suelo."
-)
 
 # Inicializamos el estado con el valor teórico de la textura seleccionada
 if 'umbral_dinamico' not in st.session_state:
