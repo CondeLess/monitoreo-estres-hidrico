@@ -17,8 +17,8 @@
 
 /* Degradado elegante para la barra lateral */
 [data-testid="stSidebar"] {
-    background-image: linear-gradient(#0E1117, #1c2a1c);
-    border-right: 2px solid rgba(255, 255, 255, 1);
+    background-image: linear-gradient(#0E1117, ##293696);
+    border-right: 2px solid rgba(255, 255, 255, 0.1);
 }
 
 /* Animación sutil de entrada para el título */
