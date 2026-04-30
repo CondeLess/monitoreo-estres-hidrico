@@ -10,21 +10,21 @@
 }
 
 [data-testid="stMetric"]:hover {
-    transform: scale(1.02);
+    transform: scale(1.00);
     border-color: #293696; /* Azul bonito */
-    box-shadow: 5px 5px 20px rgba(57, 255, 20, 0.51);
+    box-shadow: 3px 3px 15px rgba(57, 255, 20, 0.5);
 }
 
 /* Degradado elegante para la barra lateral */
 [data-testid="stSidebar"] {
-    background-image: linear-gradient(#0E1117, ##293696);
+    background-image: linear-gradient(#090f1c, ##293696);
     border-right: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* Animación sutil de entrada para el título */
 h1 {
     color: #39FF14;
-    text-shadow: 0 0 10px rgba(57, 255, 20, 0.5);
+    text-shadow: 1 1 10px rgba(57, 255, 20, 0.5);
     animation: fadeIn 6s ease-in;
 }
 
