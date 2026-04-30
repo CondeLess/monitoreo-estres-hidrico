@@ -30,7 +30,7 @@ def generar_datos_simulados():
     })
 
 
-# 3. Panel lateral para subir un archivo .csv
+# 3. Panel lateral
 st.sidebar.header("⚙️ Carga de Datos")
 st.sidebar.markdown("Sube tu reporte en formato `.csv`.")
 archivo_subido = st.sidebar.file_uploader("Selecciona un archivo", type=["csv"])
@@ -55,7 +55,12 @@ umbral_personalizado = st.sidebar.slider(
 )
 st.sidebar.markdown("---")
 st.sidebar.subheader("🌱 Configuración del Suelo")
-
+pmp_teoricos = {
+    "Arenoso (Sable)": 7.0,
+    "Franco (Loam)": 14.0,
+    "Arcilloso (Clay)": 24.0,
+    "Personalizado": 20.0
+}
 textura = st.sidebar.selectbox(
     "Textura del Suelo del Ensayo",
     options=list(pmp_teoricos.keys()),
@@ -170,13 +175,6 @@ else:
 st.caption("Proyección basada en regresión lineal de mínimos cuadrados sobre la tendencia actual de agotamiento.")
 
 
-# --- 9. Diccionario de Coeficientes Hídricos Teóricos (PMP) ---
-pmp_teoricos = {
-    "Arenoso (Sable)": 7.0,
-    "Franco (Loam)": 14.0,
-    "Arcilloso (Clay)": 24.0,
-    "Personalizado": 20.0
-}
 
 # Inicializamos el estado con el valor teórico de la textura seleccionada
 if 'umbral_dinamico' not in st.session_state:
