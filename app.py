@@ -67,6 +67,13 @@ textura = st.sidebar.selectbox(
     index=1,  # Por defecto inicia en Franco
     help="Define el punto de partida del umbral crítico basado en la capacidad de retención del suelo."
 )
+# Permitimos ajuste manual fino sobre el valor de la textura
+umbral_final = st.sidebar.slider(
+    "Ajuste Fino de Umbral (%)", 
+    5.0, 40.0, 
+    float(st.session_state.umbral_dinamico),
+    key="slider_umbral"
+)
 
 # --- Logo al final del panel lateral ---
 st.sidebar.markdown("---") 
@@ -180,13 +187,6 @@ st.caption("Proyección basada en regresión lineal de mínimos cuadrados sobre 
 if 'umbral_dinamico' not in st.session_state:
     st.session_state.umbral_dinamico = pmp_teoricos[textura]
 
-# Permitimos ajuste manual fino sobre el valor de la textura
-umbral_final = st.sidebar.slider(
-    "Ajuste Fino de Umbral (%)", 
-    5.0, 40.0, 
-    float(st.session_state.umbral_dinamico),
-    key="slider_umbral"
-)
 # Sincronizamos el estado con el slider
 st.session_state.umbral_dinamico = umbral_final
 
