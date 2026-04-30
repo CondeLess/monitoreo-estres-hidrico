@@ -1,15 +1,15 @@
+import streamlit as st
+import pandas as pd
+import plotly.express as px
+import numpy as np
+import os
+
 def local_css(file_name):
     with open(file_name) as f:
         st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 
 # Llamar a la función al principio del script
 local_css("style.css")
-
-import streamlit as st
-import pandas as pd
-import plotly.express as px
-import numpy as np
-import os
 
 # =================================================================
 # 1. CONFIGURACIÓN DE LA PÁGINA Y ESTILOS
