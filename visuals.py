@@ -26,12 +26,6 @@ def render_header_animation():
         # Esto te avisará si el problema es la descarga
         st.error("No se pudo cargar la animación de la planta")
 
-def apply_branding():
-    """Aplica el pie de página profesional."""
-    st.markdown("---")
-    st.caption("© 2026 Carlos Condemarin | Círculo de Investigación en Agrotecnología (CIATEC)")
-    st.caption("Investigación Agronómica de Precisión - UNALM")
-
 def set_sidebar_logo(logo_path):
     """Maneja el logo en la barra lateral."""
     import os
