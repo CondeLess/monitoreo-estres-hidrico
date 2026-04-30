@@ -130,6 +130,11 @@ if tiene_temp:
                     color_discrete_sequence=['#FFFB00'], # Amarillo Neón
                     template='plotly_dark')
         fig_t.update_traces(line=dict(width=3))
+        fig_h.update_layout(
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        font=dict(color="white")
+        )
         st.plotly_chart(fig_t, use_container_width=True)
 else:
     st.plotly_chart(px.line(datos, x='Fecha_Hora', y=['Control_Humedad(%)', 'Estres_Humedad(%)'], 
