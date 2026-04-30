@@ -70,7 +70,7 @@ textura = st.sidebar.selectbox(
 # Permitimos ajuste manual fino sobre el valor de la textura
 umbral_final = st.sidebar.slider(
     "Ajuste Fino de Umbral (%)", 
-    5.0, 40.0, 
+    5.0, 80.0, 
     float(st.session_state.umbral_dinamico),
     key="slider_umbral"
 )
