@@ -141,20 +141,20 @@ with c_st1:
     # DIFERENCIA DE MEDIAS
     diff = datos['Control_Humedad(%)'].mean() - datos['Estres_Humedad(%)'].mean()
     st.metric("Diferencia Media", f"{diff:.1f}%")
-    st.caption("Magnitud de la brecha hídrica constante entre tratamientos.")
+    st.caption("Representa la magnitud de la brecha hídrica constante generada por el tratamiento de estrés.")
 
 with c_st2:
     # CORRELACIÓN
     if tiene_temp:
         r_pearson = datos[['Control_Humedad(%)', 'Temperatura(°C)']].corr().iloc[0,1]
         st.metric("Correlación (H-T)", f"{r_pearson:.2f}")
-        st.caption("Coeficiente de Pearson: Indica el impacto térmico en la desecación.")
+        st.caption("Coeficiente de Pearson. Si es negativo, el calor está forzando la desecación del suelo.")
 
 with c_st3:
     # INTEGRAL DE ESTRÉS
     area = np.trapezoid(datos['Control_Humedad(%)'] - datos['Estres_Humedad(%)'])
     st.metric("Estrés Acumulado", f"{area:.1f} %-h")
-    st.caption("Integral numérica: Cuantifica la severidad total del déficit.")
+    st.caption("Integral numérica: Regla del trapecio. Cuantifica la severidad acumulada del déficit hídrico en el tiempo.")
 
 # =================================================================
 # 7. PRONÓSTICO Y MODELADO PREDICTIVO
