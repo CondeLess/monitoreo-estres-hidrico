@@ -124,7 +124,6 @@ with col_stat2:
 
 # 8. Cálculo de la Integral de Estrés (Área entre curvas)
 # Usamos la regla del trapecio para integrar la diferencia
-area_estres = np.trapz(datos['Control_Humedad(%)'] - datos['Estres_Humedad(%)'])
-
+area_estres = np.trapezoid(datos['Control_Humedad(%)'] - datos['Estres_Humedad(%)'])
 st.metric("Integral de Estrés Acumulado", f"{area_estres:.2f} %-hora")
 st.caption("Cuantifica el déficit hídrico total experimentado por el cultivo durante el ensayo.")
