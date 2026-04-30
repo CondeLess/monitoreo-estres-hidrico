@@ -152,7 +152,7 @@ pendiente = coef[0]
 if pendiente < 0:
     horas_restantes = (umbral_personalizado - y[-1]) / pendiente
     if horas_restantes > 0:
-        st.warning(f"⚠️ Se estima que el cultivo alcanzará el umbral crítico ({umbral}%) en aproximadamente **{horas_restantes:.1f} horas**.")
+        st.warning(f"⚠️ Se estima que el cultivo alcanzará el umbral crítico ({umbral_personalizado}%) en aproximadamente **{horas_restantes:.1f} horas**.")
     else:
         st.error(f"🚨 El cultivo ya ha superado el umbral crítico de {umbral}%.")
 else:
