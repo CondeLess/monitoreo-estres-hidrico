@@ -5,21 +5,16 @@ import visuals
 import numpy as np
 import os
 
+# =================================================================
+# 1. CONFIGURACIÓN DE LA PÁGINA Y ESTILOS
+# =================================================================
+st.set_page_config(page_title="Dashboard IoT - Vigna unguiculata", layout="wide", page_icon="🌱")
 # Cargar CSS y Visuals
 def local_css(file_name):
     with open(file_name) as f:
         st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 # Llamar a la función al principio del script
 local_css("style.css")
-
-# Renderizar elementos visuales pro
-visuals.render_header_animation()  
-
-# =================================================================
-# 1. CONFIGURACIÓN DE LA PÁGINA Y ESTILOS
-# =================================================================
-st.set_page_config(page_title="Dashboard IoT - Vigna unguiculata", layout="wide", page_icon="🌱")
-
 st.title("🌱 Monitoreo IoT: Estrés Hídrico en Vigna unguiculata")
 st.markdown("""
 Esta plataforma permite el análisis en tiempo real de datos recolectados por nodos sensores ESP32. Desarrollado para el **Semillero de Investigación en Agrotecnología (CIATEC)**.
