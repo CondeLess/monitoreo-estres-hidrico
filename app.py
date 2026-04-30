@@ -104,3 +104,22 @@ else:
 # 6. Mostrar tabla de datos en bruto
 with st.expander("Ver base de datos cruda (Exportable)"):
     st.dataframe(datos)
+
+# 7. Análisis Estadístico
+st.markdown("### 📊 Análisis Estadístico Avanzado")
+col_stat1, col_stat2 = st.columns(2)
+
+with col_stat1:
+    # Correlación entre Humedad y Temperatura
+    if tiene_temp:
+        corr = datos[['Control_Humedad(%)', 'Temperatura(°C)']].corr().iloc[0,1]
+        st.metric("Correlación (Humedad vs Temp)", f"{corr:.2f}")
+        st.caption("Un valor cercano a -1 indica que al subir la temperatura, la humedad desciende rápidamente.")
+
+with col_stat2:
+    # Diferencia de Medias (Simulando un análisis de impacto)
+    dif_medias = datos['Control_Humedad(%)'].mean() - datos['Estres_Humedad(%)'].mean()
+    st.metric("Diferencia Media de Humedad", f"{dif_medias:.1f}%")
+    st.caption("Mide la magnitud del impacto del tratamiento de estrés frente al control.")
+
+
