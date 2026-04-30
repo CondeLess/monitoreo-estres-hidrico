@@ -118,7 +118,12 @@ if tiene_temp:
                     color_discrete_sequence=['#00FFC8', '#FF3131'], # Turquesa y Rojo Neón
                     template='plotly_dark')
         fig_h.update_traces(line=dict(width=3)) # Líneas más gruesas
-        st.plotly_chart(fig_h, use_container_width=True)
+        fig_h.update_layout(
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        font=dict(color="white")
+        )
+st.plotly_chart(fig_h, use_container_width=True)
     with cg2:
         fig_t = px.line(datos, x='Fecha_Hora', y='Temperatura(°C)', 
                     title='Temperatura Ambiental',
