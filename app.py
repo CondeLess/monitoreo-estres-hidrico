@@ -13,8 +13,7 @@ def local_css(file_name):
 local_css("style.css")
 
 # Renderizar elementos visuales pro
-visuals.render_header_animation()  # Animación Lottie al inicio
-visuals.set_sidebar_logo("logo.png") # Logo en el sidebar
+visuals.render_header_animation()  
 
 # =================================================================
 # 1. CONFIGURACIÓN DE LA PÁGINA Y ESTILOS
@@ -44,6 +43,8 @@ def generar_datos_simulados():
 # =================================================================
 # 3. PANEL LATERAL (SIDEBAR) - CONFIGURACIÓN EDÁFICA
 # =================================================================
+visuals.set_sidebar_logo("logo.png")
+
 st.sidebar.header("⚙️ Gestión y Carga de Datos")
 archivo_subido = st.sidebar.file_uploader("Sube tu reporte (.csv)", type=["csv"])
 
@@ -96,12 +97,6 @@ else:
 st.session_state.umbral_dinamico = st.sidebar.slider("Ajuste Fino de Umbral (%)", 1.0, 45.0, 
                                                      float(st.session_state.umbral_dinamico),
                                                      help="Modifica manualmente el punto crítico para los cálculos predictivos.")
-
-# Branding CIATEC
-st.sidebar.markdown("---") 
-if os.path.exists("logo.png"):
-    st.sidebar.image("logo.png", use_container_width=True)
-    st.sidebar.caption("Investigación Agronómica - UNALM") 
 
 # =================================================================
 # 4. LÓGICA DE DATOS Y KPIs
