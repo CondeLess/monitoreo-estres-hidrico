@@ -17,7 +17,7 @@ def load_lottieurl(url: str):
 
 def render_header_animation():
     # URL directa al archivo JSON
-    url_json = "https://cdnl.iconscout.com/lottie/premium/preview-watermark/plant-growing-animation-gif-download-7873132.mp4"
+    url_json = "[https://lottie.host/80862080-60b6-455a-8b8d-519b78a9c372/U5T1hS7L6I.json](https://lottie.host/80862080-60b6-455a-8b8d-519b78a9c372/U5T1hS7L6I.json)"
     lottie_plant = load_lottieurl(url_json)
     
     if lottie_plant is not None:
