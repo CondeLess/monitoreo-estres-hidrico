@@ -16,14 +16,15 @@ def load_lottieurl(url: str):
         return None
 
 def render_header_animation():
-    """Muestra la animación sin ralentizar la app."""
-    # URL directa al archivo JSON (no a la página web)
+    # URL directa al archivo JSON
     url_json = "https://lottie.host/80862080-60b6-455a-8b8d-519b78a9c372/U5T1hS7L6I.json"
     lottie_plant = load_lottieurl(url_json)
     
-    if lottie_plant:
-        # El parámetro 'speed' ayuda a que se vea más fluida
-        st_lottie(lottie_plant, height=150, key="header_plant", speed=1)
+    if lottie_plant is not None:
+        st_lottie(lottie_plant, height=150, key="header_plant")
+    else:
+        # Esto te avisará si el problema es la descarga
+        st.error("No se pudo cargar la animación de la planta")
 
 def apply_branding():
     """Aplica el pie de página profesional."""
