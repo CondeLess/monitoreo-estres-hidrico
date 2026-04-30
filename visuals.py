@@ -17,14 +17,14 @@ def load_lottieurl(url: str):
 
 def render_header_animation():
     # URL directa al archivo JSON
-    url_json = "[https://lottie.host/80862080-60b6-455a-8b8d-519b78a9c372/U5T1hS7L6I.json](https://lottie.host/80862080-60b6-455a-8b8d-519b78a9c372/U5T1hS7L6I.json)"
-    lottie_plant = load_lottieurl(url_json)
+   url_vigna = "https://lottie.host/80862080-60b6-455a-8b8d-519b78a9c372/U5T1hS7L6I.json"
+    lottie_plant = load_lottieurl(url_vigna)
     
-    if lottie_plant is not None:
-        st_lottie(lottie_plant, height=150, key="header_plant")
+    if lottie_plant:
+        st_lottie(lottie_plant, height=180, key="vigna_anim", speed=1)
     else:
-        # Esto te avisará si el problema es la descarga
-        st.error("No se pudo cargar la animación de la planta")
+        # Solo sale si el link falla de verdad
+        st.write("🌱 (Animación en mantenimiento)")
 
 def set_sidebar_logo(logo_path):
     """Maneja el logo en la barra lateral."""
