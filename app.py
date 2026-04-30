@@ -44,6 +44,16 @@ st.sidebar.code("""
 - Temperatura(°C)
                 """)
 st.sidebar.caption("La columna de temperatura es opcional.")
+
+st.sidebar.subheader("📍 Parámetros del Cultivo")
+umbral_personalizado = st.sidebar.slider(
+    "Definir Umbral Crítico (PMP) %", 
+    min_value=5.0, 
+    max_value=40.0, 
+    value=20.0,
+    help="Ajusta este valor según la capacidad de campo y el punto de marchitez del suelo ensayado."
+)
+
 # --- Logo al final del panel lateral ---
 st.sidebar.markdown("---") 
 if os.path.exists("logo.png"):
@@ -133,8 +143,6 @@ st.caption("Regla del trapecio (Integral). Cuantifica la severidad acumulada del
 st.markdown("---")
 st.subheader("🔮 Pronóstico de Agotamiento Hídrico")
 
-# Umbral crítico de seguridad (por ejemplo, 20%)
-umbral = 20.0
 # Usamos numpy para una regresión lineal simple de la serie de estrés
 y = datos['Estres_Humedad(%)'].values
 x = np.arange(len(y))
@@ -142,7 +150,7 @@ coef = np.polyfit(x, y, 1) # Pendiente y el intercepto
 pendiente = coef[0]
 
 if pendiente < 0:
-    horas_restantes = (umbral - y[-1]) / pendiente
+    horas_restantes = (umbral_personalizado - y[-1]) / pendiente
     if horas_restantes > 0:
         st.warning(f"⚠️ Se estima que el cultivo alcanzará el umbral crítico ({umbral}%) en aproximadamente **{horas_restantes:.1f} horas**.")
     else:
