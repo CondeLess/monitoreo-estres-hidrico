@@ -154,7 +154,7 @@ if pendiente < 0:
     if horas_restantes > 0:
         st.warning(f"⚠️ Se estima que el cultivo alcanzará el umbral crítico ({umbral_personalizado}%) en aproximadamente **{horas_restantes:.1f} horas**.")
     else:
-        st.error(f"🚨 El cultivo ya ha superado el umbral crítico de {umbral}%.")
+        st.error(f"🚨 El cultivo ya ha superado el umbral crítico de {umbral_personalizado}%.")
 else:
     st.success("✅ La humedad se mantiene estable o en aumento. No se proyecta déficit crítico inmediato.")
 
