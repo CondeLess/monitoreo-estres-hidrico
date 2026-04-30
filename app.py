@@ -161,3 +161,49 @@ else:
 st.caption("Proyección basada en regresión lineal de mínimos cuadrados sobre la tendencia actual de agotamiento.")
 
 
+# --- 9. Diccionario de Coeficientes Hídricos Teóricos (PMP) ---
+pmp_teoricos = {
+    "Arenoso (Sable)": 7.0,
+    "Franco (Loam)": 14.0,
+    "Arcilloso (Clay)": 24.0,
+    "Personalizado": 20.0
+}
+
+# --- 10. Configuración en el Sidebar ---
+st.sidebar.markdown("---")
+st.sidebar.subheader("🌱 Configuración del Suelo")
+
+textura = st.sidebar.selectbox(
+    "Textura del Suelo del Ensayo",
+    options=list(pmp_teoricos.keys()),
+    index=1,  # Por defecto inicia en Franco
+    help="Define el punto de partida del umbral crítico basado en la capacidad de retención del suelo."
+)
+
+# Inicializamos el estado con el valor teórico de la textura seleccionada
+if 'umbral_dinamico' not in st.session_state:
+    st.session_state.umbral_dinamico = pmp_teoricos[textura]
+
+# Permitimos ajuste manual fino sobre el valor de la textura
+umbral_final = st.sidebar.slider(
+    "Ajuste Fino de Umbral (%)", 
+    5.0, 40.0, 
+    float(st.session_state.umbral_dinamico),
+    key="slider_umbral"
+)
+# Sincronizamos el estado con el slider
+st.session_state.umbral_dinamico = umbral_final
+
+st.markdown("### 🌿 Validación Biológica (Ground Truth)")
+col_btn, col_txt = st.columns([1, 2])
+
+with col_btn:
+    if st.button("Marcar Estrés Visual"):
+        # Captura la humedad actual del sensor y la fija como nuevo umbral
+        nueva_humedad = datos['Estres_Humedad(%)'].iloc[-1]
+        st.session_state.umbral_dinamico = nueva_humedad
+        st.rerun() # Recarga para actualizar las predicciones
+
+with col_txt:
+    st.caption(f"**Umbral actual:** {st.session_state.umbral_dinamico:.1f}%")
+    st.info("Presiona el botón si observas marchitez foliar. El sistema ajustará las predicciones automáticamente.")
