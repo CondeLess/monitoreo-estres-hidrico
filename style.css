@@ -12,7 +12,7 @@
 [data-testid="stMetric"]:hover {
     transform: scale(1.02);
     border-color: #293696; /* Azul bonito */
-    box-shadow: 10px 10px 25px rgba(57, 255, 20, 1);
+    box-shadow: 10px 10px 25px rgba(57, 255, 20, 0.1);
 }
 
 /* Degradado elegante para la barra lateral */
@@ -24,7 +24,7 @@
 /* Animación sutil de entrada para el título */
 h1 {
     color: #39FF14;
-    text-shadow: 0 0 10px rgba(57, 255, 20, 5);
+    text-shadow: 0 0 10px rgba(57, 255, 20, 0.5);
     animation: fadeIn 6s ease-in;
 }
 
@@ -35,5 +35,5 @@ h1 {
 
 /* Degradado elegante para la barra lateral */
 [data-testid="stSidebar"] {
-    background-image: linear-gradient(#0E1117, #0a1f0a);
+    background-image: linear-gradient(#0E1117, #293696);
 }
