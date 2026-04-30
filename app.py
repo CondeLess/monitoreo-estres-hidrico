@@ -114,16 +114,42 @@ with col_stat1:
     if tiene_temp:
         corr = datos[['Control_Humedad(%)', 'Temperatura(°C)']].corr().iloc[0,1]
         st.metric("Correlación (Humedad vs Temp)", f"{corr:.2f}")
-        st.caption("Un valor cercano a -1 indica que al subir la temperatura, la humedad desciende rápidamente.")
+        st.caption("Coeficiente de Pearson. Mide la relación entre variables: si es negativo, el aumento de temperatura está forzando la desecación del suelo.")
 
 with col_stat2:
     # Diferencia de Medias (Simulando un análisis de impacto)
     dif_medias = datos['Control_Humedad(%)'].mean() - datos['Estres_Humedad(%)'].mean()
     st.metric("Diferencia Media de Humedad", f"{dif_medias:.1f}%")
-    st.caption("Mide la magnitud del impacto del tratamiento de estrés frente al control.")
+    st.caption("Diferencia aritmética de los promedios. Representa la magnitud de la brecha hídrica constante generada por el tratamiento de estrés.")
 
-# 8. Cálculo de la Integral de Estrés (Área entre curvas)
+# 7.2. Cálculo de la Integral de Estrés (Área entre curvas)
 # Usamos la regla del trapecio para integrar la diferencia
 area_estres = np.trapezoid(datos['Control_Humedad(%)'] - datos['Estres_Humedad(%)'])
 st.metric("Integral de Estrés Acumulado", f"{area_estres:.2f} %-hora")
-st.caption("Cuantifica el déficit hídrico total experimentado por el cultivo durante el ensayo.")
+st.caption("Regla del trapecio (Integral). Cuantifica la severidad acumulada del déficit; esencial para predecir mermas en el rendimiento biológico.")
+
+
+# 8. Análisis Predictivo
+st.markdown("---")
+st.subheader("🔮 Pronóstico de Agotamiento Hídrico")
+
+# Umbral crítico de seguridad (por ejemplo, 20%)
+umbral = 20.0
+# Usamos numpy para una regresión lineal simple de la serie de estrés
+y = datos['Estres_Humedad(%)'].values
+x = np.arange(len(y))
+coef = np.polyfit(x, y, 1) # Pendiente y el intercepto
+pendiente = coef[0]
+
+if pendiente < 0:
+    horas_restantes = (umbral - y[-1]) / pendiente
+    if horas_restantes > 0:
+        st.warning(f"⚠️ Se estima que el cultivo alcanzará el umbral crítico ({umbral}%) en aproximadamente **{horas_restantes:.1f} horas**.")
+    else:
+        st.error(f"🚨 El cultivo ya ha superado el umbral crítico de {umbral}%.")
+else:
+    st.success("✅ La humedad se mantiene estable o en aumento. No se proyecta déficit crítico inmediato.")
+
+st.caption("Proyección basada en regresión lineal de mínimos cuadrados sobre la tendencia actual de agotamiento.")
+
+
