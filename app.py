@@ -122,4 +122,9 @@ with col_stat2:
     st.metric("Diferencia Media de Humedad", f"{dif_medias:.1f}%")
     st.caption("Mide la magnitud del impacto del tratamiento de estrés frente al control.")
 
+# 8. Cálculo de la Integral de Estrés (Área entre curvas)
+# Usamos la regla del trapecio para integrar la diferencia
+area_estres = np.trapz(datos['Control_Humedad(%)'] - datos['Estres_Humedad(%)'])
 
+st.metric("Integral de Estrés Acumulado", f"{area_estres:.2f} %-hora")
+st.caption("Cuantifica el déficit hídrico total experimentado por el cultivo durante el ensayo.")
