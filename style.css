@@ -1,0 +1,27 @@
+/* Efecto Glassmorphism para las métricas */
+[data-testid="stMetric"] {
+    background-color: rgba(255, 255, 255, 0.05);
+    padding: 20px;
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(12px);
+    transition: all 0.3s ease-in-out;
+}
+
+[data-testid="stMetric"]:hover {
+    transform: scale(1.02);
+    border-color: #4CAF50; /* Verde CIATEC al pasar el mouse */
+    box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Degradado elegante para la barra lateral */
+[data-testid="stSidebar"] {
+    background-image: linear-gradient(#0E1117, #1c2a1c);
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Personalización de títulos */
+h1, h2, h3 {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    letter-spacing: -0.5px;
+}
