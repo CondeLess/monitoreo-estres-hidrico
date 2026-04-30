@@ -1,15 +1,20 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import visuals
 import numpy as np
 import os
 
+# Cargar CSS y Visuals
 def local_css(file_name):
     with open(file_name) as f:
         st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
-
 # Llamar a la función al principio del script
 local_css("style.css")
+
+# Renderizar elementos visuales pro
+visuals.render_header_animation()  # Animación Lottie al inicio
+visuals.set_sidebar_logo("logo.png") # Logo en el sidebar
 
 # =================================================================
 # 1. CONFIGURACIÓN DE LA PÁGINA Y ESTILOS
@@ -190,3 +195,5 @@ with st.expander("Inspeccionar Base de Datos"):
 
 st.markdown("---")
 st.caption(f"© 2026 Carlos Condemarin | CIATEC - UNALM | Suelo: {textura} - {estructura}")
+
+visuals.apply_branding()
