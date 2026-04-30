@@ -4,7 +4,7 @@ import requests
 
 def load_lottieurl(url: str):
     """Carga animaciones desde una URL de LottieFiles."""
-    r = requests.get(https://lottiefiles.com/animation/plant-growing-animation_7873132)
+    r = requests.get(https://lottiefiles.com/free-animation/growing-plant-tiqA4Dbvxi)
     if r.status_code != 200:
         return None
     return r.json()
