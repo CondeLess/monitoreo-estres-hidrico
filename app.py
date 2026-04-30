@@ -35,9 +35,6 @@ def generar_datos_simulados():
 st.sidebar.header("⚙️ Gestión y Carga de Datos")
 archivo_subido = st.sidebar.file_uploader("Sube tu reporte (.csv)", type=["csv"])
 
-st.sidebar.markdown("---")
-st.sidebar.subheader("🌍 Caracterización del Suelo")
-
 with st.sidebar.expander("Ver formato requerido del CSV"):
     st.code("""
 - Fecha_Hora
@@ -45,9 +42,9 @@ with st.sidebar.expander("Ver formato requerido del CSV"):
 - Estres_Humedad(%)
 - Temperatura(°C) (Opcional)
     """)
-st.sidebar.markdown("---")
-st.sidebar.subheader("🌱 Configuración Edafológica")
 # Diccionario ampliado de texturas
+st.sidebar.markdown("---")
+st.sidebar.subheader("🌍 Caracterización del Suelo")
 pmp_teoricos = {
     "Arena": 5.0, "Arena Franca": 7.0, "Franco Arenoso": 10.0, 
     "Franco": 14.0, "Franco Limoso": 18.0, "Franco Arcillo-Arenoso": 20.0,
