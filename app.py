@@ -190,5 +190,3 @@ with st.expander("Inspeccionar Base de Datos"):
 
 st.markdown("---")
 st.caption(f"© 2026 Carlos Condemarin | CIATEC - UNALM | Suelo: {textura} - {estructura}")
-
-visuals.apply_branding()
