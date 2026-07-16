@@ -45,7 +45,7 @@ def render_header_animation():
     lottie_plant = load_lottiefile("planta.json") 
     
     if lottie_plant:
-        st_lottie(lottie_plant, height=180, key="vigna_anim", speed=1)
+        st_lottie(lottie_plant, height=120, width=120, key="vigna_anim", speed=1, quality="high")
     else:
         st.write("🌱 (Animación en mantenimiento)")
 
