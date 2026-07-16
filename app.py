@@ -3,203 +3,223 @@ import pandas as pd
 import plotly.express as px
 import visuals
 import numpy as np
-import os
+import requests
+import io
+from datetime import datetime
 
 # =================================================================
 # 1. CONFIGURACIÓN DE LA PÁGINA Y ESTILOS
 # =================================================================
-st.set_page_config(page_title="Dashboard IoT - Estrés Hídrico", layout="wide", page_icon="🌱")
-# Cargar CSS y Visuals
+st.set_page_config(
+    page_title="Dashboard IoT - Vigna unguiculata", 
+    layout="wide", 
+    page_icon="🌱",
+    initial_sidebar_state="expanded"
+)
+
+# Cargar CSS externo (Glassmorphism)
 def local_css(file_name):
-    with open(file_name) as f:
-        st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
-# Llamar a la función al principio del script
+    try:
+        with open(file_name) as f:
+            st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+    except FileNotFoundError:
+        pass # Si no encuentra el archivo temporalmente, no detiene la app
+
 local_css("style.css")
-st.title("🌱 Monitoreo IoT: Estrés Hídrico")
+
+# Renderizar animación Lottie
+visuals.render_header_animation()
+
+# --- INICIALIZAR MEMORIA TEMPORAL ---
+if 'historial_demo' not in st.session_state:
+    st.session_state.historial_demo = pd.DataFrame(columns=["Fecha_Hora", "Humedad_Media", "Humedad_T1_Control", "Humedad_T5_Estres", "Temperatura"])
+if 'umbral_dinamico' not in st.session_state:
+    st.session_state.umbral_dinamico = 15.0 # PMP por defecto
+
+# =================================================================
+# 2. ENCABEZADO Y PRESENTACIÓN
+# =================================================================
+st.title("🌱 Monitoreo IoT: Estrés Hídrico en Vigna unguiculata")
 st.markdown("""
-Esta plataforma permite el análisis en tiempo real de datos recolectados por nodos sensores ESP32. Desarrollado para el **Semillero de Investigación en Agrotecnología (CIATEC)**.
+Plataforma telemétrica en tiempo real para el análisis ecofisiológico mediante biosensores capacitivos.  
+**Equipo:** Semillero de Investigación en Agrotecnología (CIATEC) - UNALM.
 """)
 st.markdown("---")
 
 # =================================================================
-# 2. FUNCIONES DE APOYO (Datos y Simulación)
-# =================================================================
-@st.cache_data
-def generar_datos_simulados():
-    """Genera un set de datos coherente con el comportamiento de la Vigna."""
-    fechas = pd.date_range(start="2026-03-01", periods=48, freq="h")
-    # Simulación física de desecación
-    fechas = pd.date_range(start="2026-03-01", periods=48, freq="h")
-    h_control = np.linspace(60, 50, 48) + np.random.normal(0, 1, 48)
-    h_estres = np.linspace(60, 25, 48) + np.random.normal(0, 1.5, 48)
-    temp = 22 + 8 * np.sin(np.linspace(0, 4 * np.pi, 48)) + np.random.normal(0, 0.5, 48)
-    return pd.DataFrame({'Fecha_Hora': fechas, 'Control_Humedad(%)': h_control, 'Estres_Humedad(%)': h_estres, 'Temperatura(°C)': temp})
-
-# =================================================================
-# 3. PANEL LATERAL (SIDEBAR) - CONFIGURACIÓN EDÁFICA
+# 3. PANEL LATERAL (SIDEBAR)
 # =================================================================
 visuals.set_sidebar_logo("logo.png")
 
-st.sidebar.header("⚙️ Gestión y Carga de Datos")
-archivo_subido = st.sidebar.file_uploader("Sube tu reporte (.csv)", type=["csv"])
+st.sidebar.header("⚙️ Configuración del Ensayo")
+st.sidebar.markdown("Los parámetros edáficos ajustan las alertas predictivas de desecación.")
 
-with st.sidebar.expander("Ver formato requerido del CSV"):
-    st.code("""
-- Fecha_Hora
-- Control_Humedad(%)
-- Estres_Humedad(%)
-- Temperatura(°C) (Opcional)
-    """)
-# Diccionario ampliado de texturas
-st.sidebar.markdown("---")
-st.sidebar.subheader("🌍 Caracterización del Suelo")
-pmp_teoricos = {
-    "Arena": 5.0, "Arena Franca": 7.0, "Franco Arenoso": 10.0, 
-    "Franco": 14.0, "Franco Limoso": 18.0, "Franco Arcillo-Arenoso": 20.0,
-    "Franco Arcilloso": 22.0, "Arcilla": 28.0, "Personalizado": 15.0
-}
+texturas = {"Arena al 50%": 10.0, "Arena Franca": 7.0, "Franco": 14.0, "Arcilla": 28.0}
+textura = st.sidebar.selectbox("Sustrato del Ensayo", options=list(texturas.keys()), index=0)
 
-textura = st.sidebar.selectbox(
-    "Textura del Suelo",
-    options=list(pmp_teoricos.keys()),
-    index=3,
-    help="Define el PMP teórico inicial según la capacidad de retención."
+# Ajuste Fino del Umbral
+st.session_state.umbral_dinamico = st.sidebar.slider(
+    "Umbral Crítico de Marchitez (%)", 1.0, 45.0, 
+    float(texturas[textura]),
+    help="Punto de Marchitez Permanente teórico. Si la humedad cae por debajo, se activan las alertas."
 )
-# Estructura del Suelo (Influencia en porosidad)
-estructuras = {
-    "Granular (Óptima)": 1.0,
-    "Bloques Subangulares": 1.1,
-    "Prismática": 1.2,
-    "Masiva / Compactada": 0.8,
-    "Plaminar": 0.9
-}
-estructura = st.sidebar.selectbox("Estructura del Suelo", options=list(estructuras.keys()), index=0, 
-                                  help="La estructura modifica la retención hídrica real más allá de la textura.")
 
-# Inicialización segura del Session State
-if 'umbral_dinamico' not in st.session_state:
-    st.session_state.umbral_dinamico = pmp_teoricos[textura] * estructuras[estructura]
-
-# Lógica de Umbral Manual
-if textura == "Personalizado":
-    pmp_manual = st.sidebar.number_input("PMP Manual (%)", 1.0, 45.0, float(st.session_state.umbral_dinamico))
-    st.session_state.umbral_dinamico = pmp_manual
-else:
-    if st.sidebar.button("Calcular Umbral Teórico"):
-        st.session_state.umbral_dinamico = pmp_teoricos[textura] * estructuras[estructura]
-
-# AJUSTE FINO DEL UMBRAL
-st.session_state.umbral_dinamico = st.sidebar.slider("Ajuste Fino de Umbral (%)", 1.0, 45.0, 
-                                                     float(st.session_state.umbral_dinamico),
-                                                     help="Modifica manualmente el punto crítico para los cálculos predictivos.")
+st.sidebar.markdown("---")
+st.sidebar.info("La captura de datos ocurre en ciclos de 45 minutos para aislar el ruido de radiofrecuencia (RF) del conversor analógico-digital.")
 
 # =================================================================
-# 4. LÓGICA DE DATOS Y KPIs
+# 4. CONEXIÓN A FIREBASE Y CARGA DE DATOS
 # =================================================================
-datos = pd.read_csv(archivo_subido) if archivo_subido else generar_datos_simulados()
-tiene_temp = 'Temperatura(°C)' in datos.columns
+FIREBASE_URL = "https://ciatec-peg-default-rtdb.firebaseio.com/TramaActual.json"
 
-st.subheader("📊 Monitoreo en Tiempo Real")
-col_k1, col_k2, col_k3 = st.columns(3)
-if tiene_temp:
-    col_k1.metric("Temp. Ambiente", f"{datos['Temperatura(°C)'].iloc[-1]:.1f} °C")
-col_k2.metric("Humedad Control", f"{datos['Control_Humedad(%)'].iloc[-1]:.1f} %")
-col_k3.metric("Humedad Tratamiento", f"{datos['Estres_Humedad(%)'].iloc[-1]:.1f} %", delta="- Crítico", delta_color="inverse")
+@st.cache_data(ttl=5)
+def cargar_datos():
+    try:
+        respuesta = requests.get(FIREBASE_URL)
+        if respuesta.status_code == 200 and respuesta.json():
+            texto_csv = respuesta.json()
+            df = pd.read_csv(
+                io.StringIO(texto_csv),
+                names=["Tiempo_Activo_ms", "ID_Sensor", "Humedad(%)", "Estado", "Valor_RAW", "Temp_C", "Hum_Amb_Pct", "Pres_hPa"]
+            )
+            orden_correcto = [f"S{i}" for i in range(1, 16)]
+            df['ID_Sensor'] = pd.Categorical(df['ID_Sensor'], categories=orden_correcto, ordered=True)
+            return df.sort_values('ID_Sensor')
+        return pd.DataFrame()
+    except Exception as e:
+        st.error(f"Error de conexión telemétrica: {e}")
+        return pd.DataFrame()
+
+df_sensores = cargar_datos()
 
 # =================================================================
-# 5. ANÁLISIS TEMPORAL Y VISUALIZACIÓN de DATOs
+# 5. LÓGICA DE DATOS Y KPIs
 # =================================================================
-st.markdown("### 📈 Dinámica Temporal.")
-if tiene_temp:
-    cg1, cg2 = st.columns(2)
-    with cg1:
-        fig_h = px.line(datos, x='Fecha_Hora', y=['Control_Humedad(%)', 'Estres_Humedad(%)'], 
-                    title='Humedad del Suelo',
-                    color_discrete_sequence=['#00FFC8', '#FF3131'], # Turquesa y Rojo Neón
-                    template='plotly_dark')
-        fig_h.update_traces(line=dict(width=3)) # Líneas más gruesas
-        fig_h.update_layout(
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        font=dict(color="white")
+if not df_sensores.empty:
+    temp_actual = df_sensores["Temp_C"].mean()
+    promedio_humedad = df_sensores['Humedad(%)'].mean()
+    
+    # Asumimos que T1 (Control) son los sensores S1, S2, S3 y T5 (Máx Estrés) son S13, S14, S15
+    control_mean = df_sensores[df_sensores['ID_Sensor'].isin(['S1', 'S2', 'S3'])]['Humedad(%)'].mean()
+    estres_mean = df_sensores[df_sensores['ID_Sensor'].isin(['S13', 'S14', 'S15'])]['Humedad(%)'].mean()
+    
+    maceta_min = df_sensores.loc[df_sensores['Humedad(%)'].idxmin()]
+
+    st.subheader("📊 Monitoreo Telemétrico")
+    
+    kpi1, kpi2, kpi3, kpi4 = st.columns(4)
+    kpi1.metric(label="🌡️ Temp. Ambiental", value=f"{temp_actual:.1f} °C", delta=f"{df_sensores['Hum_Amb_Pct'].mean():.1f}% HR")
+    kpi2.metric(label="💧 Humedad Control (T1)", value=f"{control_mean:.1f} %")
+    kpi3.metric(label="⚠️ Humedad T5 (-0.4 MPa)", value=f"{estres_mean:.1f} %", delta=f"{estres_mean - control_mean:.1f}% vs Control", delta_color="inverse")
+    kpi4.metric(label="🚨 Alerta (Más seca)", value=f"{maceta_min['ID_Sensor']}", delta=f"{maceta_min['Humedad(%)']:.1f}%")
+
+    col_btn1, col_btn2 = st.columns([1, 4])
+    with col_btn1:
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.button("🔄 Registrar Ciclo en Historial", use_container_width=True):
+            st.cache_data.clear()
+            nuevo_dato = pd.DataFrame({
+                "Fecha_Hora": [datetime.now()],
+                "Humedad_Media": [promedio_humedad],
+                "Humedad_T1_Control": [control_mean],
+                "Humedad_T5_Estres": [estres_mean],
+                "Temperatura": [temp_actual]
+            })
+            st.session_state.historial_demo = pd.concat([st.session_state.historial_demo, nuevo_dato], ignore_index=True)
+            st.rerun()
+
+    # =================================================================
+    # 6. CALCULADORA TERMODINÁMICA (MICHEL, 1983)
+    # =================================================================
+    st.divider()
+    st.subheader("🧪 Dosificación Osmótica (Carbowax PEG-6000)")
+    st.markdown(f"Ecuación calibrada a **3.5 Litros** de agua purificada con la temperatura ambiental en tiempo real (`{temp_actual:.1f} °C`).")
+    
+    def calcular_gramos_peg(mpa_objetivo, temp_c):
+        psi_bars = mpa_objetivo * 10 
+        a = (1.29 * temp_c) - 140
+        b = -4.0
+        c = -psi_bars 
+        raices = np.roots([a, b, c])
+        raices_positivas = raices[np.isreal(raices)].real[raices[np.isreal(raices)].real > 0]
+        return (raices_positivas[0] * 3500) if len(raices_positivas) > 0 else 0.0
+
+    niveles_estres = [-0.1, -0.2, -0.3, -0.4]
+    tratamientos = ["T2 (-0.1 MPa)", "T3 (-0.2 MPa)", "T4 (-0.3 MPa)", "T5 (-0.4 MPa)"]
+    pesos_requeridos = [calcular_gramos_peg(mpa, temp_actual) for mpa in niveles_estres]
+    
+    df_peg = pd.DataFrame({
+        "Tratamiento": tratamientos,
+        "Potencial Hídrico": [f"{mpa} MPa" for mpa in niveles_estres],
+        "PEG-6000 (para 3.5 L)": [f"{peso:.2f} g" for peso in pesos_requeridos]
+    })
+    
+    c_peg1, c_peg2 = st.columns([1, 2])
+    with c_peg1:
+        st.dataframe(df_peg, use_container_width=True, hide_index=True)
+    with c_peg2:
+        st.success("**Protocolo de Reemplazo:** Pesa los gramos exactos indicados en la tabla y dilúyelos hasta alcanzar un volumen de saturación de 3.5 Litros. El volumen garantiza el desplazamiento termodinámico del soluto anterior en la zona radicular.")
+
+    # =================================================================
+    # 7. VISUALIZACIONES Y ANÁLISIS PREDICTIVO
+    # =================================================================
+    st.divider()
+    col_grafico, col_analisis = st.columns([2, 1])
+
+    with col_grafico:
+        st.subheader("📡 Mapa Dieléctrico por Tratamiento")
+        fig_bar = px.bar(
+            df_sensores, x="ID_Sensor", y="Humedad(%)", color="Humedad(%)",
+            color_continuous_scale="RdYlGn", range_color=[0, 100]
         )
-        st.plotly_chart(fig_h, use_container_width=True)
-    with cg2:
-        fig_t = px.line(datos, x='Fecha_Hora', y='Temperatura(°C)', 
-                    title='Temperatura Ambiental',
-                    color_discrete_sequence=['#FFFB00'], # Amarillo Neón
-                    template='plotly_dark')
-        fig_t.update_traces(line=dict(width=3))
-        fig_t.update_layout(
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        font=dict(color="white")
+        fig_bar.add_hline(y=st.session_state.umbral_dinamico, line_dash="dot", line_width=2, line_color="#FF4B4B", annotation_text=f"Umbral Crítico ({st.session_state.umbral_dinamico}%)")
+        fig_bar.update_layout(margin=dict(l=0, r=0, t=30, b=0), plot_bgcolor="rgba(0,0,0,0)")
+        st.plotly_chart(fig_bar, use_container_width=True)
+
+    with col_analisis:
+        st.subheader("🧬 Inteligencia Agronómica")
+        if len(st.session_state.historial_demo) > 2:
+            df_hist = st.session_state.historial_demo
+            
+            # Integral del Estrés
+            area = np.trapezoid(df_hist['Humedad_T1_Control'] - df_hist['Humedad_T5_Estres'])
+            st.metric("Carga de Estrés Acumulado", f"{area:.1f} %-t")
+            
+            # Pronóstico Mínimos Cuadrados
+            y = df_hist['Humedad_T5_Estres'].values
+            x = np.arange(len(y))
+            slope, intercept = np.polyfit(x, y, 1)
+
+            st.markdown("**Pronóstico de Agotamiento (T5):**")
+            if slope < 0:
+                ciclos_restantes = (st.session_state.umbral_dinamico - y[-1]) / slope
+                if ciclos_restantes > 0:
+                    st.warning(f"⚠️ El umbral se alcanzará en **{ciclos_restantes:.1f} ciclos** si se mantiene la tasa de secado.")
+                else:
+                    st.error("🚨 Umbral crítico superado en el tratamiento de mayor estrés.")
+            else:
+                st.success("✅ Estabilidad radicular detectada. Sin riesgo inminente.")
+        else:
+            st.info("Se requieren al menos 3 registros en el historial para activar el motor predictivo y la integral de estrés.")
+
+    # =================================================================
+    # 8. CURVAS DE REACCIÓN HISTÓRICAS
+    # =================================================================
+    st.divider()
+    st.subheader("📈 Curva de Desecación (T1 vs T5)")
+    if not st.session_state.historial_demo.empty:
+        df_melted = st.session_state.historial_demo.melt(
+            id_vars=["Fecha_Hora"], 
+            value_vars=["Humedad_T1_Control", "Humedad_T5_Estres"],
+            var_name="Tratamiento", value_name="Humedad (%)"
         )
-        st.plotly_chart(fig_t, use_container_width=True)
+        fig_line = px.line(df_melted, x="Fecha_Hora", y="Humedad (%)", color="Tratamiento", markers=True)
+        fig_line.update_traces(line_width=3, marker_size=8)
+        fig_line.update_yaxes(range=[0, 100])
+        st.plotly_chart(fig_line, use_container_width=True)
+
 else:
-    st.plotly_chart(px.line(datos, x='Fecha_Hora', y=['Control_Humedad(%)', 'Estres_Humedad(%)'], 
-                            title='Dinámica de Humedad del Suelo'), use_container_width=True)
-
-# =================================================================
-# 6. MÓDULO DE INTELIGENCIA AGRONÓMICA
-# =================================================================
-st.markdown("### 🧬 Análisis Estadístico Avanzado")
-c_st1, c_st2, c_st3 = st.columns(3)
-
-with c_st1:
-    # DIFERENCIA DE MEDIAS
-    diff = datos['Control_Humedad(%)'].mean() - datos['Estres_Humedad(%)'].mean()
-    st.metric("Diferencia Media", f"{diff:.1f}%")
-    st.caption("Representa la magnitud de la brecha hídrica constante generada por el tratamiento de estrés.")
-
-with c_st2:
-    # CORRELACIÓN
-    if tiene_temp:
-        r_pearson = datos[['Control_Humedad(%)', 'Temperatura(°C)']].corr().iloc[0,1]
-        st.metric("Correlación (H-T)", f"{r_pearson:.2f}")
-        st.caption("Coeficiente de Pearson. Si es negativo, el calor está forzando la desecación del suelo.")
-
-with c_st3:
-    # INTEGRAL DE ESTRÉS
-    area = np.trapezoid(datos['Control_Humedad(%)'] - datos['Estres_Humedad(%)'])
-    st.metric("Estrés Acumulado", f"{area:.1f} %-h")
-    st.caption("Integral numérica: Regla del trapecio. Cuantifica la severidad acumulada del déficit hídrico en el tiempo.")
-
-# =================================================================
-# 7. PRONÓSTICO Y MODELADO PREDICTIVO
-# =================================================================
-st.markdown("---")
-st.subheader("🔮 Pronóstico de Agotamiento (Mínimos Cuadrados)")
-y = datos['Estres_Humedad(%)'].values
-x = np.arange(len(y))
-slope, intercept = np.polyfit(x, y, 1)
-
-if slope < 0:
-    t_restante = (st.session_state.umbral_dinamico - y[-1]) / slope
-    if t_restante > 0:
-        st.warning(f"⚠️ El umbral de **{st.session_state.umbral_dinamico:.1f}%** se alcanzará en **{t_restante:.1f} horas**.")
-    else:
-        st.error(f"🚨 Alerta: Umbral crítico de **{st.session_state.umbral_dinamico:.1f}%** ya ha sido superado.")
-else:
-    st.success("✅ Estabilidad hídrica detectada. No se proyecta estrés inmediato.")
-
-# =================================================================
-# 8. VALIDACIÓN BIOLÓGICA Y DATOS CRUDOS
-# =================================================================
-st.markdown("### 🌿 Validación Biológica (Ground Truth)")
-cb1, cb2 = st.columns([1, 2])
-
-with cb1:
-    if st.button("Marcar Estrés Visual"):
-        st.session_state.umbral_dinamico = datos['Estres_Humedad(%)'].iloc[-1]
-        st.rerun()
-
-with cb2:
-    st.info(f"**Umbral actual calibrado:** {st.session_state.umbral_dinamico:.1f}%.")
-    st.caption("Usa el botón al observar marchitez foliar para sincronizar el modelo con la fisiología vegetal.")
-
-with st.expander("Inspeccionar Base de Datos"):
-    st.dataframe(datos, use_container_width=True)
+    st.info("⏳ Esperando telemetría del ESP32... Verifica la conexión Wi-Fi del datalogger o los permisos en Firebase.")
 
 st.markdown("---")
-st.caption(f"© 2026 Carlos Condemarin | CIATEC - UNALM | Suelo: {textura} - {estructura}")
+st.caption("© 2026 Carlos Condemarin | Semillero de Investigación en Agrotecnología (CIATEC) - UNALM")
