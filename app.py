@@ -5,6 +5,7 @@ import numpy as np
 import requests
 import io
 import os
+import json
 from datetime import datetime
 from streamlit_lottie import st_lottie
 
@@ -32,18 +33,17 @@ local_css("style.css")
 # 2. FUNCIONES VISUALES (Integradas para evitar errores de módulos)
 # =================================================================
 @st.cache_data
-def load_lottieurl(url: str):
+def load_lottiefile(filepath: str):
     try:
-        r = requests.get(url, timeout=5) 
-        if r.status_code != 200:
-            return None
-        return r.json()
+        with open(filepath, "r", encoding="utf-8") as f:
+            return json.load(f)
     except Exception:
         return None
 
 def render_header_animation():
-    url_vigna = "https://lottie.host/80862080-60b6-455a-8b8d-519b78a9c372/U5T1hS7L6I.json"
-    lottie_plant = load_lottieurl(url_vigna)
+    # AQUÍ VA EL NOMBRE EXACTO DEL ARCHIVO JSON QUE DESCARGASTE
+    lottie_plant = load_lottiefile("planta.json") 
+    
     if lottie_plant:
         st_lottie(lottie_plant, height=180, key="vigna_anim", speed=1)
     else:
@@ -61,7 +61,7 @@ if 'historial_demo' not in st.session_state:
     st.session_state.historial_demo = pd.DataFrame(columns=["Fecha_Hora", "Humedad_Media", "Humedad_T1_Control", "Humedad_T5_Estres", "Temperatura"])
 if 'umbral_dinamico' not in st.session_state:
     st.session_state.umbral_dinamico = 15.0 # PMP por defecto
-
+    
 # =================================================================
 # 3. ENCABEZADO Y PRESENTACIÓN
 # =================================================================
