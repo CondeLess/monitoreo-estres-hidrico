@@ -1,11 +1,12 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import visuals
 import numpy as np
 import requests
 import io
+import os
 from datetime import datetime
+from streamlit_lottie import st_lottie
 
 # =================================================================
 # 1. CONFIGURACIÓN DE LA PÁGINA Y ESTILOS
@@ -17,18 +18,43 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Cargar CSS externo (Glassmorphism)
+# Cargar CSS externo (Glassmorphism) de forma segura
 def local_css(file_name):
     try:
         with open(file_name) as f:
             st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
     except FileNotFoundError:
-        pass # Si no encuentra el archivo temporalmente, no detiene la app
+        pass # Si aún no has subido el style.css, esto evitará que la app colapse
 
 local_css("style.css")
 
-# Renderizar animación Lottie
-visuals.render_header_animation()
+# =================================================================
+# 2. FUNCIONES VISUALES (Integradas para evitar errores de módulos)
+# =================================================================
+@st.cache_data
+def load_lottieurl(url: str):
+    try:
+        r = requests.get(url, timeout=5) 
+        if r.status_code != 200:
+            return None
+        return r.json()
+    except Exception:
+        return None
+
+def render_header_animation():
+    url_vigna = "https://lottie.host/80862080-60b6-455a-8b8d-519b78a9c372/U5T1hS7L6I.json"
+    lottie_plant = load_lottieurl(url_vigna)
+    if lottie_plant:
+        st_lottie(lottie_plant, height=180, key="vigna_anim", speed=1)
+    else:
+        st.write("🌱 (Animación en mantenimiento)")
+
+def set_sidebar_logo(logo_path):
+    if os.path.exists(logo_path):
+        st.sidebar.image(logo_path, use_container_width=True)
+
+# Renderizar animación Lottie en la cabecera
+render_header_animation()
 
 # --- INICIALIZAR MEMORIA TEMPORAL ---
 if 'historial_demo' not in st.session_state:
@@ -37,7 +63,7 @@ if 'umbral_dinamico' not in st.session_state:
     st.session_state.umbral_dinamico = 15.0 # PMP por defecto
 
 # =================================================================
-# 2. ENCABEZADO Y PRESENTACIÓN
+# 3. ENCABEZADO Y PRESENTACIÓN
 # =================================================================
 st.title("🌱 Monitoreo IoT: Estrés Hídrico en Vigna unguiculata")
 st.markdown("""
@@ -47,9 +73,9 @@ Plataforma telemétrica en tiempo real para el análisis ecofisiológico mediant
 st.markdown("---")
 
 # =================================================================
-# 3. PANEL LATERAL (SIDEBAR)
+# 4. PANEL LATERAL (SIDEBAR)
 # =================================================================
-visuals.set_sidebar_logo("logo.png")
+set_sidebar_logo("logo.png")
 
 st.sidebar.header("⚙️ Configuración del Ensayo")
 st.sidebar.markdown("Los parámetros edáficos ajustan las alertas predictivas de desecación.")
@@ -68,7 +94,7 @@ st.sidebar.markdown("---")
 st.sidebar.info("La captura de datos ocurre en ciclos de 45 minutos para aislar el ruido de radiofrecuencia (RF) del conversor analógico-digital.")
 
 # =================================================================
-# 4. CONEXIÓN A FIREBASE Y CARGA DE DATOS
+# 5. CONEXIÓN A FIREBASE Y CARGA DE DATOS
 # =================================================================
 FIREBASE_URL = "https://ciatec-peg-default-rtdb.firebaseio.com/TramaActual.json"
 
@@ -93,7 +119,7 @@ def cargar_datos():
 df_sensores = cargar_datos()
 
 # =================================================================
-# 5. LÓGICA DE DATOS Y KPIs
+# 6. LÓGICA DE DATOS Y KPIs
 # =================================================================
 if not df_sensores.empty:
     temp_actual = df_sensores["Temp_C"].mean()
@@ -129,7 +155,7 @@ if not df_sensores.empty:
             st.rerun()
 
     # =================================================================
-    # 6. CALCULADORA TERMODINÁMICA (MICHEL, 1983)
+    # 7. CALCULADORA TERMODINÁMICA (MICHEL, 1983)
     # =================================================================
     st.divider()
     st.subheader("🧪 Dosificación Osmótica (Carbowax PEG-6000)")
@@ -161,7 +187,7 @@ if not df_sensores.empty:
         st.success("**Protocolo de Reemplazo:** Pesa los gramos exactos indicados en la tabla y dilúyelos hasta alcanzar un volumen de saturación de 3.5 Litros. El volumen garantiza el desplazamiento termodinámico del soluto anterior en la zona radicular.")
 
     # =================================================================
-    # 7. VISUALIZACIONES Y ANÁLISIS PREDICTIVO
+    # 8. VISUALIZACIONES Y ANÁLISIS PREDICTIVO
     # =================================================================
     st.divider()
     col_grafico, col_analisis = st.columns([2, 1])
@@ -180,12 +206,9 @@ if not df_sensores.empty:
         st.subheader("🧬 Inteligencia Agronómica")
         if len(st.session_state.historial_demo) > 2:
             df_hist = st.session_state.historial_demo
-            
-            # Integral del Estrés
             area = np.trapezoid(df_hist['Humedad_T1_Control'] - df_hist['Humedad_T5_Estres'])
             st.metric("Carga de Estrés Acumulado", f"{area:.1f} %-t")
             
-            # Pronóstico Mínimos Cuadrados
             y = df_hist['Humedad_T5_Estres'].values
             x = np.arange(len(y))
             slope, intercept = np.polyfit(x, y, 1)
@@ -203,7 +226,7 @@ if not df_sensores.empty:
             st.info("Se requieren al menos 3 registros en el historial para activar el motor predictivo y la integral de estrés.")
 
     # =================================================================
-    # 8. CURVAS DE REACCIÓN HISTÓRICAS
+    # 9. CURVAS DE REACCIÓN HISTÓRICAS
     # =================================================================
     st.divider()
     st.subheader("📈 Curva de Desecación (T1 vs T5)")
